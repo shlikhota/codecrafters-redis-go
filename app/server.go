@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -33,7 +34,7 @@ func processConnection(c net.Conn) {
 	for scanner.Scan() {
 		msg := scanner.Text()
 		fmt.Printf("Received from %s: %+v\n", c.RemoteAddr(), string(msg))
-		if string(msg) == "PING" {
+		if strings.ToLower(string(msg)) == "ping" {
 			c.Write([]byte("PONG"))
 			fmt.Printf("Sent to %s: PONG\n", c.RemoteAddr())
 		}
