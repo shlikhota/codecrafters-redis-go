@@ -105,7 +105,7 @@ func proccessRequest(req request) (response []byte) {
 	cmd := req.command()
 	switch cmd {
 	case "ping":
-		response = buildBulkString([]string{"PONG"})
+		response = []byte("+PONG")
 	case "echo":
 		response = buildBulkString(req.message[1:])
 	default:
