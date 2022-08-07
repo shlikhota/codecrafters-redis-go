@@ -13,8 +13,6 @@ type request struct {
 	message []string
 }
 
-var storage map[string]string = map[string]string{}
-
 func (r *request) parse(scanner *bufio.Scanner, size int) {
 	for i := 0; i < size; i++ {
 		if ok := scanner.Scan(); !ok {
@@ -60,17 +58,19 @@ func main() {
 		os.Exit(1)
 	}
 
+	storage := NewStorage()
+
 	for {
 		c, err := l.Accept()
 		if err != nil {
 			fmt.Println("Error accepting connection: ", err.Error())
 			os.Exit(1)
 		}
-		go processConnection(c)
+		go processConnection(c, storage)
 	}
 }
 
-func processConnection(c net.Conn) {
+func processConnection(c net.Conn, s *storage) {
 	scanner := bufio.NewScanner(c)
 	scanner.Split(bufio.ScanLines)
 	for {
@@ -95,14 +95,14 @@ func processConnection(c net.Conn) {
 			}
 			r := request{}
 			r.parse(scanner, size)
-			c.Write(proccessRequest(r))
+			c.Write(proccessRequest(r, s))
 		default:
 			c.Write(errorResponse("unknown prefix '%+v'", msgType))
 		}
 	}
 }
 
-func proccessRequest(req request) (response []byte) {
+func proccessRequest(req request, s *storage) (response []byte) {
 	cmd := req.command()
 	switch cmd {
 	case "ping":
@@ -110,14 +110,17 @@ func proccessRequest(req request) (response []byte) {
 	case "echo":
 		response = buildBulkString(req.message[1])
 	case "set":
+		var args []string
 		if len(req.message) < 3 {
 			return errorResponse("Wrong arguments for SET command")
+		} else if len(req.message) > 3 {
+			args = req.message[3:]
 		}
-		storage[req.message[1]] = req.message[2]
+		s.Set(req.message[1], req.message[2], args)
 		response = buildSimpleString("OK")
 	case "get":
 		key := req.message[1]
-		if value, ok := storage[key]; ok {
+		if value, err := s.Get(key); err == nil {
 			return buildBulkString(value)
 		} else {
 			return buildNullBulkString()
