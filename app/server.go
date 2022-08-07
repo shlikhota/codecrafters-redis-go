@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"net"
 	"os"
@@ -15,9 +16,27 @@ func main() {
 		fmt.Println("Failed to bind to port 6379")
 		os.Exit(1)
 	}
-	_, err = l.Accept()
-	if err != nil {
-		fmt.Println("Error accepting connection: ", err.Error())
-		os.Exit(1)
+
+	for {
+		c, err := l.Accept()
+		if err != nil {
+			fmt.Println("Error accepting connection: ", err.Error())
+			os.Exit(1)
+		}
+		go processConnection(c)
 	}
+}
+
+func processConnection(c net.Conn) {
+	scanner := bufio.NewScanner(c)
+	scanner.Split(bufio.ScanLines)
+	for scanner.Scan() {
+		msg := scanner.Text()
+		fmt.Printf("Received from %s: %+v\n", c.RemoteAddr(), string(msg))
+		if string(msg) == "PING" {
+			c.Write([]byte("PONG"))
+			fmt.Printf("Sent to %s: PONG\n", c.RemoteAddr())
+		}
+	}
+	fmt.Printf("Connection with %s has been closed!\n", c.RemoteAddr())
 }
