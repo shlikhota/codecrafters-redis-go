@@ -13,6 +13,8 @@ type request struct {
 	message []string
 }
 
+var storage map[string]string = map[string]string{}
+
 func (r *request) parse(scanner *bufio.Scanner, size int) {
 	for i := 0; i < size; i++ {
 		if ok := scanner.Scan(); !ok {
@@ -107,9 +109,21 @@ func proccessRequest(req request) (response []byte) {
 		response = []byte("+PONG\r\n")
 	case "echo":
 		response = buildBulkString(req.message[1])
+	case "set":
+		if len(req.message) < 3 {
+			return errorResponse("Wrong arguments for SET command")
+		}
+		storage[req.message[1]] = req.message[2]
+		response = buildSimpleString("OK")
+	case "get":
+		key := req.message[1]
+		if value, ok := storage[key]; ok {
+			return buildBulkString(value)
+		} else {
+			return buildNullBulkString()
+		}
 	default:
-		response = errorResponse("Unknown command: %s", cmd)
-		return
+		return errorResponse("Unknown command: %s", cmd)
 	}
 	return
 }
@@ -118,6 +132,14 @@ func errorResponse(message string, params ...interface{}) []byte {
 	return []byte("-ERR " + fmt.Sprintf(message, params...) + "\r\n")
 }
 
+func buildNullBulkString() (resp []byte) {
+	return []byte("$-1\r\n")
+}
+
 func buildBulkString(s string) (resp []byte) {
 	return []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(s), s))
+}
+
+func buildSimpleString(s string) (resp []byte) {
+	return []byte(fmt.Sprintf("+%s\r\n", s))
 }
