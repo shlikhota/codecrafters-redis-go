@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -32,7 +33,7 @@ func (s *storage) Get(key string) (string, error) {
 func (s *storage) Set(key string, value string, args []string) bool {
 	var exp *time.Time
 	for i, arg := range args {
-		if arg == "PX" {
+		if strings.ToUpper(arg) == "PX" {
 			expireInMs, err := strconv.Atoi(args[i+1])
 			if err == nil {
 				e := time.Now().Add(time.Duration(expireInMs) * time.Millisecond)
