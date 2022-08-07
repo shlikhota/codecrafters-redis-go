@@ -120,7 +120,7 @@ func errorResponse(message string, params ...interface{}) []byte {
 }
 
 func buildBulkString(arr []string) (resp []byte) {
-	buf := bytes.NewBuffer(resp)
+	var buf bytes.Buffer
 	buf.WriteString(fmt.Sprintf("*%d", len(arr)))
 	if len(arr) > 0 {
 		for _, s := range arr {
@@ -129,5 +129,5 @@ func buildBulkString(arr []string) (resp []byte) {
 		}
 	}
 	buf.Write([]byte("\r\n"))
-	return
+	return buf.Bytes()
 }
