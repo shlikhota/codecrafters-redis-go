@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"net"
 	"os"
@@ -104,15 +105,29 @@ func proccessRequest(req request) (response []byte) {
 	cmd := req.command()
 	switch cmd {
 	case "ping":
-		response = append(response, []byte("+PONG")...)
+		response = buildBulkString([]string{"PONG"})
+	case "echo":
+		response = buildBulkString(req.message[1:])
 	default:
 		response = errorResponse("Unknown command: %s", cmd)
 		return
 	}
-	response = append(response, []byte("\r\n")...)
 	return
 }
 
 func errorResponse(message string, params ...interface{}) []byte {
 	return []byte("-ERR " + fmt.Sprintf(message, params...) + "\r\n")
+}
+
+func buildBulkString(arr []string) (resp []byte) {
+	buf := bytes.NewBuffer(resp)
+	buf.WriteString(fmt.Sprintf("*%d", len(arr)))
+	if len(arr) > 0 {
+		for _, s := range arr {
+			buf.Write([]byte("\r\n"))
+			buf.WriteString(fmt.Sprintf("$%d\r\n%s", len(s), s))
+		}
+	}
+	buf.Write([]byte("\r\n"))
+	return
 }
