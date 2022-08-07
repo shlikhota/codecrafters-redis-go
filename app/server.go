@@ -113,6 +113,6 @@ func proccessRequest(req request) (response []byte) {
 	return
 }
 
-func errorResponse(message string, params ...any) []byte {
+func errorResponse(message string, params ...interface{}) []byte {
 	return []byte("-ERR " + fmt.Sprintf(message, params...) + "\r\n")
 }
