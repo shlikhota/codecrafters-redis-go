@@ -32,12 +32,25 @@ func processConnection(c net.Conn) {
 	scanner := bufio.NewScanner(c)
 	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() {
-		msg := scanner.Text()
-		fmt.Printf("Received from %s: %+v\n", c.RemoteAddr(), string(msg))
-		if strings.ToLower(string(msg)) == "ping" {
-			c.Write([]byte("PONG"))
-			fmt.Printf("Sent to %s: PONG\n", c.RemoteAddr())
-		}
+		msg := scanner.Bytes()
+		response := proccessRequest(msg)
+		c.Write(response)
 	}
+	msg := scanner.Bytes()
+	response := proccessRequest(msg)
+	c.Write(response)
 	fmt.Printf("Connection with %s has been closed!\n", c.RemoteAddr())
+}
+
+func proccessRequest(msg []byte) (response []byte) {
+	cmd := strings.ToLower(string(msg))
+	switch cmd {
+	case "ping":
+		response = append(response, []byte("PONG")...)
+	default:
+		fmt.Printf("Unknown command: %s\n", cmd)
+		return
+	}
+	response = append(response, '\n')
+	return
 }
