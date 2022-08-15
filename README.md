@@ -1,32 +1,30 @@
-This is a starting point for Go solutions to the
+This is a Go solutions to the
 ["Build Your Own Redis" Challenge](https://codecrafters.io/challenges/redis).
 
-In this challenge, you'll build a toy Redis clone that's capable of handling
-basic commands like `PING`, `SET` and `GET`. Along the way we'll learn about
-event loops, the Redis protocol and more.
+A toy Redis clone that's capable of handling
+basic commands like `PING`, `SET` and `GET`.
 
-**Note**: If you're viewing this repo on GitHub, head over to
-[codecrafters.io](https://codecrafters.io) to signup for early access.
+# How to run it
 
-# Passing the first stage
-
-The entry point for your Redis implementation is in `app/server.go`. Study and
-uncomment the relevant code, and push your changes to pass the first stage:
+It starts a local server on port 6379:
 
 ```sh
-git add .
-git commit -m "pass 1st stage" # any msg
-git push origin master
+./spawn_redis_server.sh
 ```
 
-That's all!
-
-# Stage 2 & beyond
-
-Note: This section is for stages 2 and beyond.
-
-1. Ensure you have `go (1.13)` installed locally
-1. Run `./spawn_redis_server.sh` to run your Redis server, which is implemented
-   in `app/server.go`.
-1. Commit your changes and run `git push origin master` to submit your solution
-   to CodeCrafters. Test output will be streamed to your terminal.
+Let's check the functionality:
+```sh
+~ redis-cli
+127.0.0.1:6379> GET somekey
+(nil)
+127.0.0.1:6379> SET somekey somevalue
+OK
+127.0.0.1:6379> GET somekey
+"somevalue"
+127.0.0.1:6379> SET somekey somevalue PX 3000
+OK
+127.0.0.1:6379> GET somekey
+"somevalue"
+127.0.0.1:6379> GET somekey
+(nil)
+```

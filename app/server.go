@@ -38,7 +38,7 @@ func (r *request) parse(scanner *bufio.Scanner, size int) {
 		}
 		r.message = append(r.message, data)
 	}
-	fmt.Printf("Received: %#v\n", r.message)
+	// fmt.Printf("Received: %#v\n", r.message)
 }
 
 func (r *request) command() (command string) {
